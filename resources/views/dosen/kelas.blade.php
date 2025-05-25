@@ -50,10 +50,20 @@
                                 <div class="text-sm text-gray-900">{{ $k->kapasitas }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('kelas.nilai', $k) }}" 
-                                   class="inline-flex items-center px-3 py-1 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 mr-2">
-                                    Kelola Nilai
-                                </a>
+                                <div class="flex flex-col space-y-1">
+                                    <a href="{{ route('absensi.index', $k) }}" 
+                                       class="inline-flex items-center px-3 py-1 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700">
+                                        Absensi
+                                    </a>
+                                    <a href="{{ route('kelas.nilai', $k) }}" 
+                                       class="inline-flex items-center px-3 py-1 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                                        Kelola Nilai
+                                    </a>
+                                    <a href="{{ route('kelas.edit', $k) }}" 
+                                       class="inline-flex items-center px-3 py-1 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
+                                        Edit
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
