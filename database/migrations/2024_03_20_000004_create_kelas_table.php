@@ -14,6 +14,7 @@ return new class extends Migration
             $table->foreignId('mata_kuliah_id')->constrained('mata_kuliah')->onDelete('cascade');
             $table->foreignId('dosen_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('tahun_ajaran_id')->constrained('tahun_ajaran')->onDelete('cascade');
+            $table->integer('kapasitas')->default(30);
             $table->timestamps();
 
             $table->unique(['nama_kelas', 'tahun_ajaran_id']);
@@ -24,4 +25,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('kelas');
     }
-}; 
+};

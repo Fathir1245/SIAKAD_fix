@@ -54,10 +54,6 @@
                                    class="inline-flex items-center px-3 py-1 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 mr-2">
                                     Kelola Nilai
                                 </a>
-                                <a href="{{ route('kelas.edit', $k) }}" 
-                                   class="inline-flex items-center px-3 py-1 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700">
-                                    Edit
-                                </a>
                             </td>
                         </tr>
                     @empty

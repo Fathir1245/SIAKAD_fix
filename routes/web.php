@@ -6,6 +6,7 @@ use App\Http\Controllers\MataKuliahController;
 use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EnrollmentController;
 use Illuminate\Support\Facades\Route;
 
 // Redirect root ke login jika belum login
@@ -55,8 +56,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/dosen/kelas', [KelasController::class, 'kelasDosen'])->name('kelas.dosen');
         Route::get('/dosen/kelas/{kelas}/nilai', [KelasController::class, 'nilaiMahasiswa'])->name('kelas.nilai');
         Route::post('/dosen/kelas/{kelas}/nilai/{mahasiswa}', [KelasController::class, 'updateNilai'])->name('kelas.nilai.update');
-        Route::get('/dosen/kelas/{kelas}/edit', [KelasController::class, 'edit'])->name('kelas.edit');
-        Route::put('/dosen/kelas/{kelas}', [KelasController::class, 'update'])->name('kelas.update');
     });
     
     // Mahasiswa Routes
@@ -64,5 +63,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/mahasiswa/dashboard', [DashboardController::class, 'index'])->name('mahasiswa.dashboard');
         Route::get('/mahasiswa/kelas', [KelasController::class, 'kelasMahasiswa'])->name('kelas.mahasiswa');
         Route::get('/mahasiswa/nilai', [KelasController::class, 'nilaiSaya'])->name('kelas.nilai.saya');
+        
+        // Enrollment Routes
+        Route::get('/mahasiswa/enrollment', [EnrollmentController::class, 'index'])->name('enrollment.index');
+        Route::post('/mahasiswa/enrollment/{kelas}', [EnrollmentController::class, 'enroll'])->name('enrollment.enroll');
+        Route::delete('/mahasiswa/enrollment/{kelas}', [EnrollmentController::class, 'drop'])->name('enrollment.drop');
     });
 });

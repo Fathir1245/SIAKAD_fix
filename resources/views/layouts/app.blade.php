@@ -53,6 +53,9 @@
                                 <a href="{{ route('kelas.nilai.saya') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                                     Nilai Saya
                                 </a>
+                                <a href="{{ route('enrollment.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                                    Ambil Kelas
+                                </a>
                             @endif
                         </div>
                     </div>
@@ -78,9 +81,21 @@
         <!-- Page Content -->
         <main class="py-10">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                @if(session('success'))
+                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline">{{ session('success') }}</span>
+                    </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                        <span class="block sm:inline">{{ session('error') }}</span>
+                    </div>
+                @endif
+
                 @yield('content')
             </div>
         </main>
     </div>
 </body>
-</html> 
+</html>

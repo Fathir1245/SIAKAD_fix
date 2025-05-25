@@ -45,6 +45,13 @@
                     @enderror
                 </div>
 
+                <!-- Konfirmasi Password -->
+                <div>
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Konfirmasi Password</label>
+                    <input type="password" name="password_confirmation" id="password_confirmation" required
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                </div>
+
                 <!-- Role -->
                 <div>
                     <label for="role_id" class="block text-sm font-medium text-gray-700">Role</label>
@@ -72,22 +79,22 @@
                     @enderror
                 </div>
 
-                <!-- Alamat -->
+                <!-- No HP -->
                 <div>
-                    <label for="alamat" class="block text-sm font-medium text-gray-700">Alamat</label>
-                    <textarea name="alamat" id="alamat" rows="3" required
-                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ old('alamat') }}</textarea>
-                    @error('alamat')
+                    <label for="no_hp" class="block text-sm font-medium text-gray-700">No HP</label>
+                    <input type="text" name="no_hp" id="no_hp" value="{{ old('no_hp') }}"
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    @error('no_hp')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- No HP -->
-                <div>
-                    <label for="no_hp" class="block text-sm font-medium text-gray-700">No HP</label>
-                    <input type="text" name="no_hp" id="no_hp" value="{{ old('no_hp') }}" required
-                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-                    @error('no_hp')
+                <!-- Alamat -->
+                <div class="md:col-span-2">
+                    <label for="alamat" class="block text-sm font-medium text-gray-700">Alamat</label>
+                    <textarea name="alamat" id="alamat" rows="3"
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">{{ old('alamat') }}</textarea>
+                    @error('alamat')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
@@ -106,4 +113,4 @@
         </form>
     </div>
 </div>
-@endsection 
+@endsection

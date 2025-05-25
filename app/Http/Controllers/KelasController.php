@@ -36,30 +36,62 @@ class KelasController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama_kelas' => 'required|string|max:255',
-            'mata_kuliah_id' => 'required|exists:mata_kuliah,id',
-            'dosen_id' => 'required|exists:users,id',
-            'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
-            'kapasitas' => 'required|integer|min:1',
-            'mahasiswa' => 'array',
-            'mahasiswa.*' => 'exists:users,id',
-        ]);
+        try {
+            $request->validate([
+                'nama_kelas' => 'required|string|max:255',
+                'mata_kuliah_id' => 'required|exists:mata_kuliah,id',
+                'dosen_id' => 'required|exists:users,id',
+                'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
+                'kapasitas' => 'required|integer|min:1|max:100',
+                'mahasiswa' => 'array',
+                'mahasiswa.*' => 'exists:users,id',
+            ]);
 
-        $kelas = Kelas::create([
-            'nama_kelas' => $request->nama_kelas,
-            'mata_kuliah_id' => $request->mata_kuliah_id,
-            'dosen_id' => $request->dosen_id,
-            'tahun_ajaran_id' => $request->tahun_ajaran_id,
-            'kapasitas' => $request->kapasitas,
-        ]);
+            // Cek duplikasi nama kelas di tahun ajaran yang sama
+            $existingKelas = Kelas::where('nama_kelas', $request->nama_kelas)
+                ->where('tahun_ajaran_id', $request->tahun_ajaran_id)
+                ->first();
 
-        // Attach mahasiswa jika ada
-        if ($request->has('mahasiswa')) {
-            $kelas->mahasiswa()->attach($request->mahasiswa);
+            if ($existingKelas) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['nama_kelas' => 'Nama kelas sudah ada di tahun ajaran ini.']);
+            }
+
+            DB::beginTransaction();
+
+            $kelas = Kelas::create([
+                'nama_kelas' => $request->nama_kelas,
+                'mata_kuliah_id' => $request->mata_kuliah_id,
+                'dosen_id' => $request->dosen_id,
+                'tahun_ajaran_id' => $request->tahun_ajaran_id,
+                'kapasitas' => $request->kapasitas,
+            ]);
+
+            // Attach mahasiswa jika ada dan tidak melebihi kapasitas
+            if ($request->has('mahasiswa') && is_array($request->mahasiswa)) {
+                $mahasiswaIds = $request->mahasiswa;
+                
+                if (count($mahasiswaIds) > $request->kapasitas) {
+                    DB::rollBack();
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['mahasiswa' => 'Jumlah mahasiswa melebihi kapasitas kelas.']);
+                }
+                
+                $kelas->mahasiswa()->attach($mahasiswaIds);
+            }
+
+            DB::commit();
+
+            return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dibuat.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
         }
-
-        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dibuat.');
     }
 
     public function show(Kelas $kelas)
@@ -87,34 +119,81 @@ class KelasController extends Controller
 
     public function update(Request $request, Kelas $kelas)
     {
-        $request->validate([
-            'nama_kelas' => 'required|string|max:255',
-            'mata_kuliah_id' => 'required|exists:mata_kuliah,id',
-            'dosen_id' => 'required|exists:users,id',
-            'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
-            'kapasitas' => 'required|integer|min:1',
-            'mahasiswa' => 'array',
-            'mahasiswa.*' => 'exists:users,id',
-        ]);
+        try {
+            $request->validate([
+                'nama_kelas' => 'required|string|max:255',
+                'mata_kuliah_id' => 'required|exists:mata_kuliah,id',
+                'dosen_id' => 'required|exists:users,id',
+                'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
+                'kapasitas' => 'required|integer|min:1|max:100',
+                'mahasiswa' => 'array',
+                'mahasiswa.*' => 'exists:users,id',
+            ]);
 
-        $kelas->update([
-            'nama_kelas' => $request->nama_kelas,
-            'mata_kuliah_id' => $request->mata_kuliah_id,
-            'dosen_id' => $request->dosen_id,
-            'tahun_ajaran_id' => $request->tahun_ajaran_id,
-            'kapasitas' => $request->kapasitas,
-        ]);
+            // Cek duplikasi nama kelas di tahun ajaran yang sama (kecuali kelas ini sendiri)
+            $existingKelas = Kelas::where('nama_kelas', $request->nama_kelas)
+                ->where('tahun_ajaran_id', $request->tahun_ajaran_id)
+                ->where('id', '!=', $kelas->id)
+                ->first();
 
-        // Sync mahasiswa (hapus yang lama, tambah yang baru)
-        $kelas->mahasiswa()->sync($request->mahasiswa ?? []);
+            if ($existingKelas) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['nama_kelas' => 'Nama kelas sudah ada di tahun ajaran ini.']);
+            }
 
-        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil diperbarui.');
+            DB::beginTransaction();
+
+            $kelas->update([
+                'nama_kelas' => $request->nama_kelas,
+                'mata_kuliah_id' => $request->mata_kuliah_id,
+                'dosen_id' => $request->dosen_id,
+                'tahun_ajaran_id' => $request->tahun_ajaran_id,
+                'kapasitas' => $request->kapasitas,
+            ]);
+
+            // Sync mahasiswa dan cek kapasitas
+            $mahasiswaIds = $request->mahasiswa ?? [];
+            
+            if (count($mahasiswaIds) > $request->kapasitas) {
+                DB::rollBack();
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['mahasiswa' => 'Jumlah mahasiswa melebihi kapasitas kelas.']);
+            }
+            
+            $kelas->mahasiswa()->sync($mahasiswaIds);
+
+            DB::commit();
+
+            return redirect()->route('kelas.index')->with('success', 'Kelas berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()]);
+        }
     }
 
     public function destroy(Kelas $kelas)
     {
-        $kelas->delete();
-        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus.');
+        try {
+            DB::beginTransaction();
+            
+            // Hapus relasi mahasiswa terlebih dahulu
+            $kelas->mahasiswa()->detach();
+            
+            // Hapus kelas
+            $kelas->delete();
+            
+            DB::commit();
+            
+            return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('kelas.index')->with('error', 'Gagal menghapus kelas: ' . $e->getMessage());
+        }
     }
 
     public function kelasDosen()

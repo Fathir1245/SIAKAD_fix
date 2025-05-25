@@ -11,6 +11,16 @@
 @section('content')
 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
     <div class="p-6 bg-white border-b border-gray-200">
+        @if ($errors->any())
+            <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <ul class="list-disc list-inside">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('kelas.store') }}" method="POST">
             @csrf
 
@@ -33,7 +43,7 @@
                         <option value="">Pilih Mata Kuliah</option>
                         @foreach($mataKuliah as $mk)
                             <option value="{{ $mk->id }}" {{ old('mata_kuliah_id') == $mk->id ? 'selected' : '' }}>
-                                {{ $mk->kode_mk }} - {{ $mk->nama_mk }}
+                                {{ $mk->kode_mk }} - {{ $mk->nama_mk }} ({{ $mk->sks }} SKS)
                             </option>
                         @endforeach
                     </select>
@@ -76,21 +86,34 @@
                     @enderror
                 </div>
 
+                <!-- Kapasitas -->
+                <div>
+                    <label for="kapasitas" class="block text-sm font-medium text-gray-700">Kapasitas</label>
+                    <input type="number" name="kapasitas" id="kapasitas" value="{{ old('kapasitas', 30) }}" min="1" max="100" required
+                        class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                    @error('kapasitas')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Mahasiswa -->
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Mahasiswa</label>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @foreach($mahasiswa as $m)
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="mahasiswa[]" value="{{ $m->id }}"
-                                    {{ in_array($m->id, old('mahasiswa', [])) ? 'checked' : '' }}
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-sm text-gray-600">
-                                    {{ $m->name }} ({{ $m->nim_nip }})
-                                </span>
-                            </label>
-                        @endforeach
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Mahasiswa (Opsional)</label>
+                    <div class="max-h-60 overflow-y-auto border border-gray-300 rounded-md p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($mahasiswa as $m)
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="mahasiswa[]" value="{{ $m->id }}"
+                                        {{ in_array($m->id, old('mahasiswa', [])) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                    <span class="ml-2 text-sm text-gray-600">
+                                        {{ $m->name }} ({{ $m->nim_nip }})
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
+                    <p class="mt-1 text-sm text-gray-500">Pilih mahasiswa yang akan didaftarkan ke kelas ini (tidak boleh melebihi kapasitas)</p>
                     @error('mahasiswa')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -110,4 +133,28 @@
         </form>
     </div>
 </div>
-@endsection 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const kapasitasInput = document.getElementById('kapasitas');
+    const mahasiswaCheckboxes = document.querySelectorAll('input[name="mahasiswa[]"]');
+    
+    function checkKapasitas() {
+        const kapasitas = parseInt(kapasitasInput.value) || 0;
+        const selectedMahasiswa = document.querySelectorAll('input[name="mahasiswa[]"]:checked').length;
+        
+        if (selectedMahasiswa > kapasitas) {
+            alert('Jumlah mahasiswa yang dipilih melebihi kapasitas kelas!');
+            return false;
+        }
+        return true;
+    }
+    
+    mahasiswaCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', checkKapasitas);
+    });
+    
+    kapasitasInput.addEventListener('input', checkKapasitas);
+});
+</script>
+@endsection
